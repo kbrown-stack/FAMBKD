@@ -1,28 +1,45 @@
 const Entry = require('../models/Entry');
 const cloudinary = require('../config/cloudinary');
 const sendEmail = require('../config/email');
+const streamifier = require('streamifier');
 
 // Create Entry
 
-exports.createEntry = async (requestAnimationFrame,RegExp,next) => {
+exports.createEntry = async (req,res,next) => {
     try {
         const { title, content, category } = req.body;
         const photos = [];
 
-        // To Uppload Photos to the Cloudinary if present
+        console.log('Files received:', req.files); // added console
+        console.log('Body received:', req.body);
+
+        // To Upload Photos to the Cloudinary if present
 
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
-                const result = await cloudinary.uploader.upload(
-                    `data:${file.mimetype};base64, ${file.buffer.toString('base64')}`,
-                    {folder: 'family-planner' }
-                );
+
+             try {
+                const result = await new Promise((resolve, reject) => {
+                    const uploadStream = cloudinary.uploader.upload_stream(
+                        { folder: 'family-planner' },
+                        (error, result) => {
+                            if (error) reject(error);
+                            else resolve(result);
+                        }
+                    );
+                    streamifier.createReadStream(file.buffer).pipe(uploadStream);
+                });
+                    
                 photos.push({
                     url: result.secure_url,
                     publicId: result.public_id,
                 });
+            } catch (uploadError) {
+                console.error('Cloudinary upload error:', uploadError); // added this consoole here 
+                return res.status(500).json({messsage: 'Photo upload failed'}); 
             }
         }
+    }
 
         const entry = await Entry.create({
             userId: req.user._id,
@@ -35,7 +52,9 @@ exports.createEntry = async (requestAnimationFrame,RegExp,next) => {
         res.status(201).json({
             success: true, entry
         });
+
     } catch (error) {
+        console.error('createEntry error:', error.messsage); // added this consoole here 
         next(error);
     }
 };
@@ -124,7 +143,7 @@ exports.updateEntry = async (req, res, next) => {
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 const result = await cloudinary.uploader.upload(
-                    `data:${file.mimetype};base64,${file.buffer.toString('64')}`,
+                    `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
                     { folder: 'family-planner' }
                 );
                 newPhotos.push({

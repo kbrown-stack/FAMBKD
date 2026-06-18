@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const user = require('../models/User');
+const User = require('../models/User');
 
 exports.protect = async (req,res, next) => {
     try {
@@ -8,7 +8,7 @@ exports.protect = async (req,res, next) => {
         // To check for token in Headers
 
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-            token = req.headers.authorization.split('')[1];
+            token = req.headers.authorization.split(' ')[1];
         }else if (req.cookies.token) {
             token = req.cookies.token;
         }
@@ -20,7 +20,7 @@ exports.protect = async (req,res, next) => {
 
         // To Verify the Token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = await UserActivation.findById(decoded.id);
+        req.user = await User.findById(decoded.id);
 
         if (!req.user) {
             return res.status(401).json({

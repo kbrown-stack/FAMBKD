@@ -13,7 +13,7 @@ const signToken = (id) => {
 // To send Token Response 
 
 const sendTokenResponse = (user, statusCode, res) => {
-    const token = crypto.signToken(user._id);
+    const token = signToken(user._id);
 
     const cookieOptions = {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // this shows 7days duration in a week.
@@ -52,12 +52,12 @@ exports.register = async (req, res, next) => {
 
         // Create user with Unique invitecode
 
-        const invitecode = crypto.randomBytes(4).toString('hex');
+        const inviteCode = crypto.randomBytes(4).toString('hex');
         const user = await User.create({
             name,
             email,
             password,
-            invitecode,
+            inviteCode,
         });
 
         sendTokenResponse(user, 201, res);
@@ -107,9 +107,11 @@ exports.getMe = async (req,res, next) => {
 
 // Link Partners 
 
-exports.linkPartner = async (req, rex, next) => {
+exports.linkPartner = async (req, res, next) => {
     try {
-        const partner = await User.findOne({ invitecode });
+        const { inviteCode } = req.body;
+        const partner = await User.findOne({ inviteCode });
+
         if (!partner) {
             return res.status(404).json({message: 'Invalid invite Code' });
         }
@@ -129,7 +131,7 @@ exports.linkPartner = async (req, rex, next) => {
     res.status(200).json({
         success: true,
         message: 'Partner linked  successfully',
-        partner: {name: partner.anme, email: partner.email },
+        partner: {name: partner.name, email: partner.email },
     });
 
 }catch (error) {
