@@ -10,8 +10,8 @@ exports.createEntry = async (req,res,next) => {
         const { title, content, category } = req.body;
         const photos = [];
 
-        console.log('Files received:', req.files); // added console
-        console.log('Body received:', req.body);
+        // console.log('Files received:', req.files); // added console
+        // console.log('Body received:', req.body);
 
         // To Upload Photos to the Cloudinary if present
 
