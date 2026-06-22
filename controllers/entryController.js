@@ -241,7 +241,7 @@ exports.deletePhoto = async (req,res, next) => {
 
 // To send weekly updates/Memory emails.
 
-exports.sendWeeklyMemory = async (req,res, next) => {
+exports.sendWeeklyMemory = async () => {
     try {
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
@@ -273,6 +273,8 @@ exports.sendWeeklyMemory = async (req,res, next) => {
                 });
 
                 sentTo.add(email);
+                //Adding delay between emails
+                await new Promise(resolve => setTimeout(resolve, 1000)); // This add a one second delay
             }
         }
 

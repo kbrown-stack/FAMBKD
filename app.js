@@ -9,7 +9,7 @@ dotenv.config();
 const connectDB = require("./config/database");
 const errorHandler = require("./middleware/errorHandler");
 const cron = require('node-cron');
-const { sendweeklyMemory } = require('./controllers/entryController');
+const { sendWeeklyMemory } = require('./controllers/entryController');
 
 // To initiazile Express
 
@@ -44,6 +44,11 @@ app.get("/api/health", (req, res) => {
 });
 
 // Schedule weekly activities
+
+cron.schedule('0 9 * * 1', async () => { // 0 is min , 9 is hour , * is day of month, * is month dayly, 1 is day of the week
+  console.log('Running weekly memory email...');
+  await sendWeeklyMemory();
+})
 
 // Error Handler
 app.use(errorHandler);
